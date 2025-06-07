@@ -38,8 +38,7 @@ stages:
     condition: succeeded()
     jobs:
       - job: WaitForApproval
-        pool:
-          vmImage: 'ubuntu-latest'
+        pool: server
         steps:
           - task: ManualValidation@0
             inputs:
