@@ -22,3 +22,15 @@ variable "subscription_id" {
   type      = string
   sensitive = true
 }
+
+variable "account_tier_terraform_state" {
+  description = "Azure Storage Account and Private Endpoint for File Share account tier"
+  type        = string
+  default     = "Standard"
+}
+
+variable "account_replication_type_terraform_state" {
+  description = "Azure Storage Account and Private Endpoint for File Share account replication type"
+  type        = string
+  default     = "LRS"
+}

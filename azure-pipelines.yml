@@ -1,0 +1,73 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pr:
+  branches:
+    include:
+      - master
+
+stages:
+  - stage: Dev
+    displayName: "Deploy to Dev"
+    jobs:
+      - job: TerraformDev
+        displayName: "Terraform Apply to Dev"
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'BeStrong-AI'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                cd terraform
+                terraform init -backend-config="key=dev.tfstate"
+                terraform workspace select dev || terraform workspace new dev
+                terraform plan -out=tfplan -var-file="dev.tfvars"
+                terraform apply -auto-approve tfplan
+            displayName: "Terraform Init & Apply (Dev)"
+
+  - stage: Approval
+    displayName: "Manual Approval to Prod"
+    dependsOn: Dev
+    condition: succeeded()
+    jobs:
+      - job: WaitForApproval
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              instructions: "Approve to deploy to PROD"
+              onTimeout: 'reject'
+              timeout: '1d'
+
+  - stage: Prod
+    displayName: "Deploy to Prod"
+    dependsOn: Approval
+    condition: succeeded()
+    jobs:
+      - job: TerraformProd
+        displayName: "Terraform Apply to Prod"
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'BeStrong-AI'
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                cd terraform
+                terraform init -backend-config="key=prod.tfstate"
+                terraform workspace select prod || terraform workspace new prod
+                terraform plan -out=tfplan -var-file="prod.tfvars"
+                terraform apply -auto-approve tfplan
+            displayName: "Terraform Init & Apply (Prod)"
