@@ -25,12 +25,19 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                # Встановлення Terraform
+                curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+                unzip terraform.zip
+                sudo mv terraform /usr/local/bin/
+                terraform -v
+
                 cd terraform
                 terraform init -backend-config="key=dev.tfstate"
                 terraform workspace select dev || terraform workspace new dev
                 terraform plan -out=tfplan -var-file="dev.tfvars"
                 terraform apply -auto-approve tfplan
-            displayName: "Terraform Init & Apply (Dev)"
+
+              displayName: "Terraform Init & Apply (Dev)"
 
   - stage: Approval
     displayName: "Manual Approval to Prod"
@@ -64,9 +71,15 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
+                curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
+                unzip terraform.zip
+                sudo mv terraform /usr/local/bin/
+                terraform -v
+
                 cd terraform
                 terraform init -backend-config="key=prod.tfstate"
                 terraform workspace select prod || terraform workspace new prod
                 terraform plan -out=tfplan -var-file="prod.tfvars"
                 terraform apply -auto-approve tfplan
+
             displayName: "Terraform Init & Apply (Prod)"
