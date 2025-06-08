@@ -25,17 +25,19 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                # Встановлення Terraform
-                curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
-                unzip terraform.zip
-                sudo mv terraform /usr/local/bin/
-                terraform -v
+              
+                  sudo apt-get update -y
+                  sudo apt-get install -y gnupg software-properties-common curl
+                  curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+                  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                  sudo apt-get update && sudo apt-get install -y terraform
+                  terraform -v
 
-                cd terraform
-                terraform init -backend-config="key=dev.tfstate"
-                terraform workspace select dev || terraform workspace new dev
-                terraform plan -out=tfplan -var-file="dev.tfvars"
-                terraform apply -auto-approve tfplan
+                  cd terraform
+                  terraform init -backend-config="key=dev.tfstate"
+                  terraform workspace select dev || terraform workspace new dev
+                  terraform plan -out=tfplan -var-file="dev.tfvars"
+                  terraform apply -auto-approve tfplan
 
               displayName: "Terraform Init & Apply (Dev)"
 
@@ -71,9 +73,12 @@ stages:
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |
-                curl -sLo terraform.zip https://releases.hashicorp.com/terraform/1.7.5/terraform_1.7.5_linux_amd64.zip
-                unzip terraform.zip
-                sudo mv terraform /usr/local/bin/
+                
+                sudo apt-get update -y
+                sudo apt-get install -y gnupg software-properties-common curl
+                curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+                echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+                sudo apt-get update && sudo apt-get install -y terraform
                 terraform -v
 
                 cd terraform
@@ -81,5 +86,6 @@ stages:
                 terraform workspace select prod || terraform workspace new prod
                 terraform plan -out=tfplan -var-file="prod.tfvars"
                 terraform apply -auto-approve tfplan
+
 
             displayName: "Terraform Init & Apply (Prod)"
