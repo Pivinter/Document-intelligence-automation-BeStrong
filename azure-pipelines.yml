@@ -8,37 +8,72 @@ pr:
     include:
       - master
 
+pool:
+  vmImage: 'ubuntu-22.04'
+
+variables:
+  - name: workingDirectory
+    value: 'terraform'
+
+
 stages:
   - stage: Dev
     displayName: "Deploy to Dev"
+    condition: eq(variables['Build.Reason'], 'PullRequest')
     jobs:
       - job: TerraformDev
         displayName: "Terraform Apply to Dev"
-        pool:
-          vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
 
-          - task: AzureCLI@2
+          - task: DownloadSecureFile@1
+            name: downloadTfvars
             inputs:
-              azureSubscription: 'BeStrong-AI'
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                cd terraform
-                terraform init -backend-config="key=dev.tfstate"
-                terraform workspace select dev || terraform workspace new dev
-                terraform plan -out=tfplan -var-file="dev.tfvars"
-                terraform apply -auto-approve tfplan
-            displayName: "Terraform Init & Apply (Dev)"
+              secureFile: 'dev.tfvars'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'BeStrong-AI'
+              backendAzureRmResourceGroupName: 'BeStrong-AI'
+              backendAzureRmStorageAccountName: 'tfstatebestrong3246'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'dev.tfstate'
+              workingDirectory: '$(workingDirectory)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Validate'
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(workingDirectory)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: 'BeStrong-AI'
+              commandOptions: '-var-file=$(downloadTfvars.secureFilePath)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: 'BeStrong-AI'
+              commandOptions: '-var-file=$(downloadTfvars.secureFilePath) -auto-approve'
 
   - stage: Approval
     displayName: "Manual Approval to Prod"
     dependsOn: Dev
-    condition: succeeded()
+    condition: eq(variables['Build.Reason'], 'PullRequest')
     jobs:
       - job: WaitForApproval
-        pool: server
         steps:
           - task: ManualValidation@0
             inputs:
@@ -49,24 +84,51 @@ stages:
   - stage: Prod
     displayName: "Deploy to Prod"
     dependsOn: Approval
-    condition: succeeded()
+    condition: eq(variables['Build.Reason'], 'IndividualCI')
     jobs:
       - job: TerraformProd
         displayName: "Terraform Apply to Prod"
-        pool:
-          vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
 
-          - task: AzureCLI@2
+          - task: DownloadSecureFile@1
+            name: downloadTfvars
             inputs:
-              azureSubscription: 'BeStrong-AI'
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                cd terraform
-                terraform init -backend-config="key=prod.tfstate"
-                terraform workspace select prod || terraform workspace new prod
-                terraform plan -out=tfplan -var-file="prod.tfvars"
-                terraform apply -auto-approve tfplan
-            displayName: "Terraform Init & Apply (Prod)"
+              secureFile: 'prod.tfvars'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: 'BeStrong-AI'
+              backendAzureRmResourceGroupName: 'BeStrong-AI'
+              backendAzureRmStorageAccountName: 'tfstatebestrong324'
+              backendAzureRmContainerName: 'tfstate'
+              backendAzureRmKey: 'prod.tfstate'
+              workingDirectory: '$(workingDirectory)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Validate'
+            inputs:
+              provider: 'azurerm'
+              command: 'validate'
+              workingDirectory: '$(workingDirectory)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: 'BeStrong-AI'
+              commandOptions: '-var-file=$(downloadTfvars.secureFilePath)'
+
+          - task: TerraformTaskV4@4
+            displayName: 'Terraform Apply'
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(workingDirectory)'
+              environmentServiceNameAzureRM: 'BeStrong-AI'
+              commandOptions: '-var-file=$(downloadTfvars.secureFilePath) -auto-approve'
