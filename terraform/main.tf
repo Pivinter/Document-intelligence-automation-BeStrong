@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "main" {
   location = var.location
 }
 resource "azurerm_storage_account" "terraform_state" {
-  name                     = "tfstatebestrong3246"
+  name                     = "tfstatebestrong324"
   resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = var.account_tier_terraform_state
