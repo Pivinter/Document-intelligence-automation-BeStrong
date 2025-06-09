@@ -7,7 +7,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "BeStrong-AI"
-    storage_account_name = "tfstatebestrong324"
+    storage_account_name = "tfstatebestrong3246"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
   }

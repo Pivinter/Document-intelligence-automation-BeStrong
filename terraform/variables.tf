@@ -10,12 +10,12 @@ variable "resource_group_name" {
 
 variable "storage_account_name" {
   type    = string
-  default = "ocrdocaistorage"
+  default = "ocrdocaistorage1"
 }
 
 variable "function_app_name" {
   type    = string
-  default = "ocr-docai-function"
+  default = "ocr-docai-function1"
 }
 
 variable "subscription_id" {
