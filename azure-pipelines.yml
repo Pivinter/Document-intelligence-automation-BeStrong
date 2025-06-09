@@ -18,7 +18,7 @@ variables:
 stages:
   - stage: Dev
     displayName: "Deploy to Dev"
-    condition: eq(variables['Build.Reason'], 'PullRequest')
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.Reason'], 'Manual'))
     jobs:
       - job: TerraformDev
         displayName: "Terraform Apply to Dev"
@@ -70,11 +70,11 @@ stages:
   - stage: Approval
     displayName: "Manual Approval to Prod"
     dependsOn: Dev
-    condition: eq(variables['Build.Reason'], 'PullRequest')
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.Reason'], 'Manual'))
     jobs:
       - deployment: WaitForApproval
         displayName: 'Wait for manual approval'
-        environment: 'prod-approval-env'   # <--- Створи це environment в Azure DevOps
+        environment: 'prod-approval-env'   # Створи це environment в Azure DevOps
         strategy:
           runOnce:
             deploy:
@@ -84,7 +84,7 @@ stages:
   - stage: Prod
     displayName: "Deploy to Prod"
     dependsOn: Approval
-    condition: eq(variables['Build.Reason'], 'IndividualCI')
+    condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))
     jobs:
       - job: TerraformProd
         displayName: "Terraform Apply to Prod"
