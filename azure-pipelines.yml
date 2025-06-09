@@ -37,7 +37,7 @@ stages:
               command: 'init'
               backendServiceArm: 'BeStrong-AI'
               backendAzureRmResourceGroupName: 'BeStrong-AI'
-              backendAzureRmStorageAccountName: 'tfstatebestrong324'
+              backendAzureRmStorageAccountName: 'tfstatebestrong32466'
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.tfstate'
               workingDirectory: '$(workingDirectory)'
