@@ -37,4 +37,8 @@ module "App_Service_Plan" {
 }
 
 module "Document_Intelligence" {
-  source              = ".
+  source              = "./modules/Document_Intelligence"
+  random_id           = random_id.suffix.hex
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
