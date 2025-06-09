@@ -58,9 +58,9 @@ stages:
               versionSpec: '$(pythonVersion)'
           - task: Docker@2
             inputs:
-              command: 'start'
+              command: 'run'
               container: 'mcr.microsoft.com/azure-storage/azurite'
-              arguments: '--blobHost 0.0.0.0 --fileHost 0.0.0.0'
+              arguments: '-d -p 10000:10000 -p 10001:10001 -p 10002:10002 --blobHost 0.0.0.0 --fileHost 0.0.0.0'
           - task: Bash@3
             inputs:
               targetType: 'inline'
