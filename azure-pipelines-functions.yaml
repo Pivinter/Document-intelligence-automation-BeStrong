@@ -12,7 +12,7 @@ trigger:
 
 variables:
   pythonVersion: '3.12'  # Зміни на 3.12, якщо використовуєш Python 3.12.10
-  functionAppName: 'ocr-docai-function1'  # Ім’я твоєї Function App
+  functionAppName: 'ocr-docai-function1'  # Оновлено на основі логу
   azureSubscription: 'BeStrong-AI'  # Заміни на назву Azure Service Connection
   resourceGroup: 'BeStrong-AI'  # Заміни на назву Resource Group
   storageAccountName: 'ocrdocaistorage1'  # Заміни на ім’я Storage Account
@@ -67,8 +67,7 @@ stages:
               script: |
                 pip install -r requirements.txt
                 pip install azure-functions azure-storage-blob
-                # Запускаємо Azurite у фоні
-                docker run -d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
+                # Чекаємо, поки Azurite запуститься
                 sleep 10
                 # Створюємо контейнер ocr-json-results в Azurite
                 curl -X PUT "http://127.0.0.1:10000/devstoreaccount1/ocr-json-results?restype=container"
@@ -76,10 +75,8 @@ stages:
                 func start --functions DocumentProcessor notifications &
                 sleep 10
                 # Тест для DocumentProcessor (Timer Trigger)
-                # Викликаємо функцію вручну через адмін-ендпоінт
                 curl -X POST "http://localhost:7071/admin/functions/DocumentProcessor" -H "Content-Type: application/json" -d '{}'
                 # Тест для notifications (Blob Trigger)
-                # Завантажуємо тестовий JSON-файл у Azurite
                 echo '{"test": "data"}' > test.json
                 curl -X PUT -T test.json "http://127.0.0.1:10000/devstoreaccount1/ocr-json-results/test.json"
                 sleep 10  # Чекаємо, поки Blob Trigger спрацює
@@ -92,12 +89,18 @@ stages:
         pool:
           vmImage: 'ubuntu-latest'
         steps:
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'specific'
+              artifactName: 'function-app'
+              downloadPath: '$(System.ArtifactsDirectory)'
           - task: AzureFunctionApp@1
             inputs:
               azureSubscription: '$(azureSubscription)'
               appType: 'functionApp'
               appName: '$(functionAppName)'
-              package: '$(Build.ArtifactStagingDirectory)/function-app.zip'
+              package: '$(System.ArtifactsDirectory)/function-app/function-app.zip'
               deploymentMethod: 'zipDeploy'
           - task: AzureCLI@2
             inputs:
@@ -105,5 +108,5 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                # Опціонально: перевірка логів після розгортання
+                # Перевірка логів після розгортання
                 az functionapp logstream --name $(functionAppName) --resource-group $(resourceGroup) --timeout 30
