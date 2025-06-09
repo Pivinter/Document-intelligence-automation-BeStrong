@@ -1,15 +1,15 @@
 # Resource Group
-resource "azurerm_resource_group" "main" {
-  name     = var.resource_group_name
-  location = var.location
-}
-resource "azurerm_storage_account" "terraform_state" {
-  name                     = "tfstatebestrong32466"
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = var.account_tier_terraform_state
-  account_replication_type = var.account_replication_type_terraform_state
-}
+# resource "azurerm_resource_group" "main" {
+#   name     = var.resource_group_name
+#   location = var.location
+# }
+# resource "azurerm_storage_account" "terraform_state" {
+#   name                     = "tfstatebestrong32466"
+#   resource_group_name      = var.resource_group_name
+#   location                 = var.location
+#   account_tier             = var.account_tier_terraform_state
+#   account_replication_type = var.account_replication_type_terraform_state
+# }
 
 resource "azurerm_storage_container" "tfstate" {
   name                  = "tfstate"
