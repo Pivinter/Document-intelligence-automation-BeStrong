@@ -102,11 +102,4 @@ stages:
               appName: '$(functionAppName)'
               package: '$(System.ArtifactsDirectory)/function-app/function-app.zip'
               deploymentMethod: 'zipDeploy'
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: '$(azureSubscription)'
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                # Перевірка логів після розгортання
-                az functionapp logstream --name $(functionAppName) --resource-group $(resourceGroup) --timeout 30
+          
