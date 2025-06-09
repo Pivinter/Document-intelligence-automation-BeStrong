@@ -15,7 +15,6 @@ variables:
   - name: workingDirectory
     value: 'terraform'
 
-
 stages:
   - stage: Dev
     displayName: "Deploy to Dev"
@@ -38,7 +37,7 @@ stages:
               command: 'init'
               backendServiceArm: 'BeStrong-AI'
               backendAzureRmResourceGroupName: 'BeStrong-AI'
-              backendAzureRmStorageAccountName: 'tfstatebestrong3246'
+              backendAzureRmStorageAccountName: 'tfstatebestrong324'
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.tfstate'
               workingDirectory: '$(workingDirectory)'
@@ -73,13 +72,14 @@ stages:
     dependsOn: Dev
     condition: eq(variables['Build.Reason'], 'PullRequest')
     jobs:
-      - job: WaitForApproval
-        steps:
-          - task: ManualValidation@0
-            inputs:
-              instructions: "Approve to deploy to PROD"
-              onTimeout: 'reject'
-              timeout: '1d'
+      - deployment: WaitForApproval
+        displayName: 'Wait for manual approval'
+        environment: 'prod-approval-env'   # <--- Створи це environment в Azure DevOps
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo "Waiting for manual approval..."
 
   - stage: Prod
     displayName: "Deploy to Prod"
