@@ -1,0 +1,12 @@
+{
+    "scriptFile": "notify.py",
+    "bindings": [
+      {
+        "name": "myblob",
+        "type": "blobTrigger",
+        "direction": "in",
+        "path": "ocr-json-results/{name}",
+        "connection": "BLOB_STORAGE_CONN_STRING"
+      }
+    ]
+  }
