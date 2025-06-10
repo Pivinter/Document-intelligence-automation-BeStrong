@@ -34,3 +34,8 @@ variable "account_replication_type_terraform_state" {
   type        = string
   default     = "LRS"
 }
+
+variable "environment" {
+  type = string
+  description = "Environment name"
+}

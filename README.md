@@ -16,3 +16,39 @@ terraform apply \
 ```bash
 terraform init   # with backend
 ```
+
+## Report of our work
+
+all resources created
+![Моє фото](images/hz.png)
+
+ **key file that contains all the keys**
+![Моє фото](images/key.png)
+
+ **pdf file**
+![Моє фото](images/pdd.png)
+
+
+ **funtions messages**
+![Моє фото](images/work.png)
+
+ **json file in our container**
+![Моє фото](images/resul.png)
+
+**message in telegram**
+![Моє фото](images/tg.png)
+
+**message in diskord**
+![Моє фото](images/ds.png)
+
+**and finally our result**
+![Моє фото](images/result.png)
+
+
+
+
+
+
+
+
+

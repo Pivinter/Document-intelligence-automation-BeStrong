@@ -14,13 +14,12 @@ pool:
 variables:
   - name: workingDirectory
     value: 'terraform'
-
   - group: terraform-vars
 
 stages:
   - stage: Dev
     displayName: "Deploy to Dev"
-    condition: eq(variables['Build.Reason'], 'PullRequest')
+    condition: or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.Reason'], 'Manual'))
     jobs:
       - job: TerraformDev
         displayName: "Terraform Apply to Dev"
@@ -39,7 +38,7 @@ stages:
               command: 'init'
               backendServiceArm: 'BeStrong-AI'
               backendAzureRmResourceGroupName: 'BeStrong-AI'
-              backendAzureRmStorageAccountName: 'tfstatebestrong3246'
+              backendAzureRmStorageAccountName: 'tfstatebestrong32466'
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'dev.tfstate'
               workingDirectory: '$(workingDirectory)'
@@ -85,7 +84,7 @@ stages:
   - stage: Prod
     displayName: "Deploy to Prod"
     dependsOn: Approval
-    condition: eq(variables['Build.Reason'], 'IndividualCI')
+    condition: or(eq(variables['Build.Reason'], 'IndividualCI'), eq(variables['Build.Reason'], 'Manual'))
     jobs:
       - job: TerraformProd
         displayName: "Terraform Apply to Prod"
@@ -104,7 +103,7 @@ stages:
               command: 'init'
               backendServiceArm: 'BeStrong-AI'
               backendAzureRmResourceGroupName: 'BeStrong-AI'
-              backendAzureRmStorageAccountName: 'tfstatebestrong324'
+              backendAzureRmStorageAccountName: 'tfstatebestrong32466'
               backendAzureRmContainerName: 'tfstate'
               backendAzureRmKey: 'prod.tfstate'
               workingDirectory: '$(workingDirectory)'

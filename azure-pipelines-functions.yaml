@@ -1,0 +1,105 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - DocumentProcessor/*
+      - notifications/*
+      - requirements.txt
+      - host.json
+      - local.settings.json
+
+variables:
+  pythonVersion: '3.12'  # Зміни на 3.12, якщо використовуєш Python 3.12.10
+  functionAppName: 'ocr-docai-function1'  # Оновлено на основі логу
+  azureSubscription: 'BeStrong-AI'  # Заміни на назву Azure Service Connection
+  resourceGroup: 'BeStrong-AI'  # Заміни на назву Resource Group
+  storageAccountName: 'ocrdocaistorage1'  # Заміни на ім’я Storage Account
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildFunctions
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                python -m pip install --upgrade pip
+                pip install -r requirements.txt
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/function-app.zip'
+              replaceExistingArchive: true
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: 'function-app'
+              publishLocation: 'Container'
+
+  - stage: Test
+    dependsOn: Build
+    jobs:
+      - job: RunTests
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+          - task: Docker@2
+            inputs:
+              command: 'run'
+              container: 'mcr.microsoft.com/azure-storage/azurite'
+              arguments: '-d -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite azurite --blobHost 0.0.0.0 --fileHost 0.0.0.0'
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                pip install -r requirements.txt
+                pip install azure-functions azure-storage-blob
+                # Чекаємо, поки Azurite запуститься
+                sleep 10
+                # Створюємо контейнер ocr-json-results в Azurite
+                curl -X PUT "http://127.0.0.1:10000/devstoreaccount1/ocr-json-results?restype=container"
+                # Запускаємо функції локально
+                func start --functions DocumentProcessor notifications &
+                sleep 10
+                # Тест для DocumentProcessor (Timer Trigger)
+                curl -X POST "http://localhost:7071/admin/functions/DocumentProcessor" -H "Content-Type: application/json" -d '{}'
+                # Тест для notifications (Blob Trigger)
+                echo '{"test": "data"}' > test.json
+                curl -X PUT -T test.json "http://127.0.0.1:10000/devstoreaccount1/ocr-json-results/test.json"
+                sleep 10  # Чекаємо, поки Blob Trigger спрацює
+                # Додай свої тести (наприклад, pytest), якщо є
+
+  - stage: Deploy
+    dependsOn: Test
+    jobs:
+      - job: DeployFunctions
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: DownloadBuildArtifacts@1
+            inputs:
+              buildType: 'current'
+              downloadType: 'specific'
+              artifactName: 'function-app'
+              downloadPath: '$(System.ArtifactsDirectory)'
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: '$(azureSubscription)'
+              appType: 'functionApp'
+              appName: '$(functionAppName)'
+              package: '$(System.ArtifactsDirectory)/function-app/function-app.zip'
+              deploymentMethod: 'zipDeploy'
+          
