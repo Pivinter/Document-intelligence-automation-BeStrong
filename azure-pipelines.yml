@@ -14,6 +14,7 @@ pool:
 variables:
   - name: workingDirectory
     value: 'terraform'
+  - group: terraform-vars
 
 stages:
   - stage: Dev
@@ -70,16 +71,15 @@ stages:
   - stage: Approval
     displayName: "Manual Approval to Prod"
     dependsOn: Dev
-    condition: or(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.Reason'], 'Manual'))
+    condition: eq(variables['Build.Reason'], 'PullRequest')
     jobs:
-      - deployment: WaitForApproval
-        displayName: 'Wait for manual approval'
-        environment: 'prod-approval-env'   # Створи це environment в Azure DevOps
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - script: echo "Waiting for manual approval..."
+      - job: WaitForApproval
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              instructions: "Approve to deploy to PROD"
+              onTimeout: 'reject'
+              timeout: '1d'
 
   - stage: Prod
     displayName: "Deploy to Prod"
