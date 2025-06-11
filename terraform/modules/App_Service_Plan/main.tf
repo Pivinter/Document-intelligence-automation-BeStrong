@@ -1,13 +1,14 @@
-# App Service Plan (for Function App)
 resource "azurerm_service_plan" "functionplan" {
   name                = "function-app-plan"
   location            = var.location
   resource_group_name = var.resource_group_name
   os_type             = "Linux"
   sku_name            = "Y1"
+  tags               = {
+    Environment = var.environment
+  }
 }
 
-# Azure Function App (Linux, Python)
 resource "azurerm_linux_function_app" "functionapp" {
   name                        = var.function_app_name
   location                    = var.location
@@ -23,5 +24,8 @@ resource "azurerm_linux_function_app" "functionapp" {
   }
   identity {
     type = "SystemAssigned"
+  }
+  tags               = {
+    Environment = var.environment
   }
 }

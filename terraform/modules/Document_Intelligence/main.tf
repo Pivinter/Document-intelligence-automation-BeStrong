@@ -1,4 +1,3 @@
-# Document Intelligence / Form Recognizer
 resource "azurerm_cognitive_account" "docai" {
   name                  = "docai-service"
   location              = var.location
@@ -6,4 +5,7 @@ resource "azurerm_cognitive_account" "docai" {
   kind                  = "FormRecognizer"
   sku_name              = "S0"
   custom_subdomain_name = "docaiocr-${var.random_id}"
+  tags               = {
+    Environment = var.environment
+  }
 }
