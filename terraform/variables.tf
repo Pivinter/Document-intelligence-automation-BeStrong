@@ -36,6 +36,6 @@ variable "account_replication_type_terraform_state" {
 }
 
 variable "environment" {
-  type = string
-  description = "Environment name"
+  type        = string
+  description = "Dev"
 }

@@ -8,4 +8,9 @@ variable "resource_group_name" {
   default = "BeStrong-AI"
 }
 
+variable "environment" {
+  type = string
+  description = "Dev"
+}
+
 variable "random_id" {}

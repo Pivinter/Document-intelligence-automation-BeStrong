@@ -9,6 +9,9 @@ resource "azurerm_storage_account" "terraform_state" {
   location                 = var.location
   account_tier             = var.account_tier_terraform_state
   account_replication_type = var.account_replication_type_terraform_state
+  tags = {
+    Environment = var.environment
+  }
 }
 
 resource "azurerm_storage_container" "tfstate" {
@@ -25,6 +28,7 @@ module "Storage_Account" {
   source              = "./modules/Storage_Account"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
+  environment         = var.environment
 }
 
 module "App_Service_Plan" {
@@ -33,6 +37,7 @@ module "App_Service_Plan" {
   location                   = azurerm_resource_group.main.location
   storage_account_name       = module.Storage_Account.storage_account_name
   storage_account_access_key = module.Storage_Account.storage_account_access_key
+  environment                = var.environment
 }
 
 module "Document_Intelligence" {
@@ -40,4 +45,5 @@ module "Document_Intelligence" {
   random_id           = random_id.suffix.hex
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
+  environment         = var.environment
 }
